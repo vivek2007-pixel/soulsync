@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Admin Dashboard</title>
+    <link rel="stylesheet" href="../styles/main.css" />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body>
+    
+    <div id="navbar"></div>
+
+    <div class="admin-container">
+
+        <h1>Admin Dashboard</h1>
+        <p>High-level overview of your workspace.</p>
+
+        <div class="admin-container">
+            <div class="admin-stat-card">
+                <h3>TOTAL USERS</h3>
+                <p id="totalUsers" class="metric-value">--</p>
+            </div>
+        </div>
+
+        <h2>Engagement (last 7 days)</h2>
+        <p>Bands represent number of messages sent per day.</p>
+
+        <canvas id="metricsChart" width="400" height="150"></canvas>
+
+        <hr />
+
+        </br>
+        </br>
+        </br>   
+
+        <h2>User Directory</h2>
+        <p>Quick glance at every member — newest at the top.</p>
+
+        <ul id="adminUserList"></ul>
+
+        <table id="usersTable" border="1" cellpadding="8"
+            style="width:100%; margin-top:20px; border-collapse:collapse;">
+            <thead>
+                <tr>
+                    <th>First Name</th>
+                    <th>Last Name</th>
+                    <th>Email</th>
+                    <th>Username</th>
+                    <th>Role</th>
+                    <th>Created At</th>
+                    <th>
+                        <input type="checkbox" id="selectAll" />
+                    </th>
+                </tr>
+            </thead>
+            <tbody id="usersTableBody"></tbody>
+        </table>
+
+        <div class="admin-email-sender">
+            <h2>Email Sender</h2>
+            <p class="admin-muted">Select users from the table above and send them an email.</p>
+            
+            <div class="admin-email-form">
+                <div class="admin-email-field">
+                    <label for="subject">Subject:</label>
+                    <input type="text" id="subject" placeholder="Enter email subject">
+                </div>
+                
+                <div class="admin-email-field">
+                    <label for="body">Message:</label>
+                    <textarea id="body" rows="6" placeholder="Enter your message"></textarea>
+                </div>
+                
+                <button id="sendBtn" class="admin-email-btn">Send Emails to Selected Users</button>
+            </div>
+        </div>
+
+    </div>
+
+    <div id="footer"></div>
+
+    <script type="module">
+        import {setupAdminPage, getSelectedEmails} from "../scripts/admin.js";
+        import { loadComponents } from "../scripts/utils.js";
+        loadComponents();
+        setupAdminPage();
+
+        // Send POST request to backend using selected users from table
+        document.getElementById("sendBtn").onclick = async function () {
+            const selectedEmails = getSelectedEmails();
+            
+            if (selectedEmails.length === 0) {
+                alert("Please select at least one user from the table.");
+                return;
+            }
+            
+            const subject = document.getElementById("subject").value;
+            const body = document.getElementById("body").value;
+            
+            if (!subject || !body) {
+                alert("Please fill in both subject and message.");
+                return;
+            }
+            
+            const res = await fetch("http://localhost:5000/send-emails", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ emails: selectedEmails, subject, body }),
+            });
+            const result = await res.json();
+            alert(result.message);
+        };
+
+    </script>
+</body>
+</html>
